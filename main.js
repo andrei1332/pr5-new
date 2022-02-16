@@ -1,13 +1,14 @@
 import { Pokemon } from './pokemon.js'
+import { pokemons } from './pokemons.js'
 import { random } from './tools.js'
 
-const buttons = document.querySelectorAll('.button.action-button')
 const logsWrapper = document.querySelector('#logs')
+const control = document.querySelector('#control')
 
 let isGameFinished = false
 
-const initCounter = () => {
-    const LIMIT = 6;
+const initCounter = (limit) => {
+    const LIMIT = limit;
     let counter = 0
 
     return () => {
@@ -19,54 +20,82 @@ const initCounter = () => {
     }
 }
 
-const finishGame = () => {
-    isGameFinished = true
 
-    Array.from(buttons).forEach((button) => {
-        button.disabled = true;
-    })
-}
+const pokemon1 = pokemons[random(0, pokemons.length - 1)]
+const pokemon2 = pokemons[random(0, pokemons.length - 1)]
 
-const Pikachu = new Pokemon(
-    'Pikachu',
-    document.querySelector('#health-character'),
-    document.querySelector('#progressbar-character')
-)
+let Player1 = new Pokemon({
+    ...pokemon1,
+    selector: 'player1',
+})
 
-const Charmander = new Pokemon(
-    'Charmander',
-    document.querySelector('#health-enemy'),
-    document.querySelector('#progressbar-enemy')
-)
+let Player2 = new Pokemon({
+    ...pokemon2,
+    selector: 'player2',
+})
 
 const listenerHandler = (limits) => {
     if (!isGameFinished) {
-        const pikachuLog = Pikachu.changeHP(random(...limits), Charmander);
+        const Player1Log = Player1.changeHP(random(...limits), Player2);
 
-        if (Pikachu.isDead) {
+        if (Player1.isDead) {
             finishGame()
         } else {
-            const charmLog = Charmander.changeHP(random(...limits), Pikachu);
-            logsWrapper.innerHTML = logsWrapper.innerHTML.concat(`<p>${pikachuLog}</p>`, `<p>${charmLog}</p>`)
+            const charmLog = Player2.changeHP(random(...limits), Player1);
+            logsWrapper.innerHTML = logsWrapper.innerHTML.concat(`<p>${Player1Log}</p>`, `<p>${charmLog}</p>`)
         }
 
-        if (Charmander.isDead) {
+        if (Player2.isDead) {
             finishGame()
         }
     }
 }
 
-Array.from(buttons).forEach((button) => {
-    const limitsDamage = button.dataset.damage.split(', ')
+const initPlayer1 = () => {
+    control.innerHTML = ''
 
-    const inc = initCounter()
+    Player1.attacks.forEach((item) => {
+        const btn = document.createElement('button')
+        btn.classList.add('button', 'action-button')
+        btn.innerText = item.name
 
-    button.addEventListener('click', () => {
-        if (inc()) {
-            listenerHandler(limitsDamage)
-        }
+        const inc = initCounter(item.maxCount)
+
+        btn.addEventListener('click', () => {
+            if (inc()) {
+                listenerHandler([item.minDamage, item.maxDamage])
+            }
+        })
+
+        control.appendChild(btn)
     })
-})
+}
 
-Pikachu.renderHP()
-Charmander.renderHP()
+const finishGame = () => {
+    // isGameFinished = true
+    // const buttons = document.querySelectorAll('.button.action-button')
+
+    // Array.from(buttons).forEach((button) => {
+    //     button.disabled = true;
+    // })
+
+    const pokemon1 = pokemons[random(0, pokemons.length - 1)]
+    const pokemon2 = pokemons[random(0, pokemons.length - 1)]
+
+    Player1 = new Pokemon({
+        ...pokemon1,
+        selector: 'player1',
+    })
+
+    Player2 = new Pokemon({
+        ...pokemon2,
+        selector: 'player2',
+    })
+
+    initPlayer1()
+}
+
+
+
+
+initPlayer1()
