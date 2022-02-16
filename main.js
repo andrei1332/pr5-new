@@ -1,74 +1,94 @@
-const $btn = document.getElementById('btn-kick1');
-const $btn1 = document.getElementById('btn-kick2');
+const buttons = document.querySelectorAll('.button.action-button')
+
 let isGameFinished = false
 
-const character = {
-    name: 'Pikachu',
-    defaultHP: 100,
-    damageHP: 100,
-    elHP: document.getElementById('health-character'),
-    elProgressbar: document.getElementById('progressbar-character'),
+const finishGame = () => {
+    isGameFinished = true
+
+    Array.from(buttons).forEach((button) => {
+        button.disabled = true;
+    })
 }
 
-const enemy = {
-    name: 'Charmander',
-    defaultHP: 100,
-    damageHP: 100,
-    elHP: document.getElementById('health-enemy'),
-    elProgressbar: document.getElementById('progressbar-enemy'),
-}
+class Pokemon {
+    #name
+    #elHP
+    #elProgressbar
+    #defaultHP
+    #damageHP
 
-const renderHP = (person) => {
-    renderHPLife(person);
-    renderProgressbarHP(person);
-}
+    constructor(name, elHP, elProgressbar) {
+        this.#name = name
+        this.#elHP = elHP
+        this.#elProgressbar = elProgressbar
+        this.#defaultHP = 100
+        this.#damageHP = 100
+    }
+    
+    renderHP() {
+        this.#renderHPLife();
+        this.#renderProgressbarHP();
+    }
 
-const renderHPLife = (person) => {
-    person.elHP.innerText = person.damageHP + ' / ' + person.defaultHP + ' HP';
-}
+    #renderHPLife() {
+        this.#elHP.innerText = this.#damageHP + ' / ' + this.#defaultHP + ' HP';
+    }
 
-const renderProgressbarHP = (person) => {
-    person.elProgressbar.style.width = person.damageHP + '%';
-}
+    #renderProgressbarHP() {
+        this.#elProgressbar.style.width = this.#damageHP + '%';
+    }
 
-const changeHP = (count, person) => {
-    if (!isGameFinished) {
-        if (person.damageHP < count) {
-            person.damageHP = 0;
-            alert(`${person.name} wasted`)
-            $btn.disabled = true;
-            $btn1.disabled = true;
-            isGameFinished = true
-        } else {
-            person.damageHP -= count;
+    changeHP(count) {
+        console.log(count);
+
+        if (!isGameFinished) {
+            if (this.#damageHP < count) {
+                this.#damageHP = 0;
+                alert(`${this.#name} wasted`)
+                finishGame()
+            } else {
+                this.#damageHP -= count;
+            }
+
+            this.renderHP();
         }
-
-        renderHP(person);
     }
 }
 
+const Pikachu = new Pokemon(
+    'Pikachu',
+    document.querySelector('#health-character'),
+    document.querySelector('#progressbar-character')
+)
+
+const Charmander = new Pokemon(
+    'Charmander',
+    document.querySelector('#health-enemy'),
+    document.querySelector('#progressbar-enemy')
+)
+
+const listenerHandler = (limits) => {
+    Pikachu.changeHP(random(...limits));
+    Charmander.changeHP(random(...limits));
+}
+
+Array.from(buttons).forEach((button) => {
+    const limitsDamage = button.dataset.damage.split(', ')
+
+    button.addEventListener('click', () => listenerHandler(limitsDamage))
+})
+
 const random = (from, to) => {
-    if(from > to) {
+    if (Number(from) > Number(to)) {
         throw Error('Wrong values')
     }
 
     return (
         !to
-            ? Math.ceil(Math.random() * from)
-            : Math.ceil(Math.random() * (to - from)) + from
+            ? Math.ceil(Math.random() * Number(from))
+            : Math.ceil(Math.random() * (Number(to) - Number(from))) + Number(from)
     )
 }
 
-const listenerHandler = (...limits) => {
-    changeHP(random(...limits), character);
-    changeHP(random(...limits), enemy);
-}
-
-$btn.addEventListener('click', () => listenerHandler(20));
-
-$btn1.addEventListener('click', () => listenerHandler(30, 40));
-
-(() => {
-    renderHP(character);
-    renderHP(enemy);
-})()
+Pikachu.renderHP()
+Charmander.renderHP()
