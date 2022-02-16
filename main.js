@@ -3,6 +3,19 @@ const logsWrapper = document.querySelector('#logs')
 
 let isGameFinished = false
 
+const initCounter = () => {
+    const LIMIT = 6;
+    let counter = 0
+
+    return () => {
+        counter = counter + 1 >= LIMIT ? LIMIT : counter + 1
+
+        console.log(`[${counter}/${LIMIT}]`);
+
+        return counter + 1 <= LIMIT
+    }
+}
+
 const finishGame = () => {
     isGameFinished = true
 
@@ -86,6 +99,7 @@ const Charmander = new Pokemon(
 )
 
 const listenerHandler = (limits) => {
+    
     Pikachu.changeHP(random(...limits), Charmander);
     Charmander.changeHP(random(...limits), Pikachu);
 }
@@ -93,7 +107,13 @@ const listenerHandler = (limits) => {
 Array.from(buttons).forEach((button) => {
     const limitsDamage = button.dataset.damage.split(', ')
 
-    button.addEventListener('click', () => listenerHandler(limitsDamage))
+    const inc = initCounter()
+
+    button.addEventListener('click', () => {
+        if (inc()) {
+            listenerHandler(limitsDamage)
+        }
+    })
 })
 
 const random = (from, to) => {
